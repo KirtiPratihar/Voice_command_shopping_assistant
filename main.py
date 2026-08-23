@@ -12,7 +12,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-app = FastAPI()
+
+APP_TITLE = "Voice Command Shopping Assistant"
+APP_VERSION = "1.0.0"
+
+app = FastAPI(title=APP_TITLE, version=APP_VERSION)
 origins = [
     "http://localhost",
     "http://localhost:3000",
@@ -20,7 +24,7 @@ origins = [
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app"],  
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,18 +41,6 @@ except ImportError:  # pragma: no cover - optional dependency is installed via r
     StateGraph = None
     END = None
     START = None
-
-
-APP_TITLE = "Voice Command Shopping Assistant"
-APP_VERSION = "1.0.0"
-app=FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app/"],  
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 class VoiceCommandRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Transcribed command or spoken query.")
@@ -545,7 +537,7 @@ async def search_product(payload: VoiceCommandRequest):
         raise HTTPException(status_code=500, detail=f"Search failed: {str(exc)}") from exc
 
 
-@app.post("/voice-command")
+@app.post("/api/voice-command")
 async def voice_command(payload: VoiceCommandRequest):
     if not payload.text or not payload.text.strip():
         raise HTTPException(status_code=400, detail="Voice command text cannot be empty.")
