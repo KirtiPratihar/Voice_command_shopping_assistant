@@ -26,7 +26,7 @@ except ImportError:  # pragma: no cover - optional dependency is installed via r
 
 APP_TITLE = "Voice Command Shopping Assistant"
 APP_VERSION = "1.0.0"
-app=FASTAPI()
+app=FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app/"],  
