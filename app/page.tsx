@@ -26,6 +26,9 @@ type CartItem = {
   checked: boolean;
 };
 
+const [mounted, setMounted] = useState(false);
+useEffect(() => setMounted(true), []);
+
 type Suggestion = {
   title: string;
   note: string;
@@ -134,60 +137,79 @@ export default function Page() {
   };
 
   const finalizeCommand = async (command: string) => {
-    const trimmed = command.trim();
-    if (!trimmed) return;
+  const trimmed = command.trim();
+  if (!trimmed) return;
 
-    setStatusMessage('Sending command to your smart cart...');
+  setStatusMessage('Sending command to your smart cart...');
 
-    try {
-      const response = await fetch('https://voice-command-shopping-assistant-3zue.onrender.com/api/voice-command', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: trimmed,
-        preference,
-      }),
-      });
+  try {
+    const response = await fetch('https://voice-command-shopping-assistant-3zue.onrender.com/api/voice-command', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: trimmed, preference }),
+    });
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const data = (await response.json()) as BackendResponse;
-
-      if (data.cart && Array.isArray(data.cart)) {
-        const mapped = data.cart.map((item) => ({
-          id: String(item.id ?? item.name),
-          name: item.name,
-          category: item.category,
-          quantity: Number(item.quantity ?? 1),
-          price: Number(item.price ?? 0),
-          checked: Boolean(item.checked),
-        }));
-        setCartItems(mapped);
-      }
-
-      if (data.suggestions && Array.isArray(data.suggestions)) {
-        setSuggestions(data.suggestions as Suggestion[]);
-      }
-
-      if (data.recommendations && Array.isArray(data.recommendations)) {
-        setSuggestions(
-          data.recommendations.map((item, index) => ({
-            title: item,
-            note: index === 0 ? 'Suggested from the latest command.' : 'Derived from smart product matching.',
-            accent: index % 2 === 0 ? 'deal' : 'substitute',
-          })),
-        );
-      }
-
-      setStatusMessage(data.message ?? data.status ?? 'Shopping command processed successfully.');
-      setTranscript(trimmed);
-    } catch (error) {
-      console.error(error);
-      setStatusMessage('The backend is offline. Local cart is still updated in demo mode.');
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+
+    // Cart comes back as a plain { itemName: quantity } object.
+    if (data.cart && typeof data.cart === 'object' && !Array.isArray(data.cart)) {
+      const cartRecord = data.cart as Record<string, number>;
+      setCartItems((previous) => {
+        const byName = new Map(previous.map((item) => [item.name.toLowerCase(), item]));
+        return Object.entries(cartRecord).map(([name, quantity]) => {
+          const existing = byName.get(name.toLowerCase());
+          return {
+            id: existing?.id ?? name.toLowerCase().replace(/\s+/g, '-'),
+            name: existing?.name ?? name,
+            category: existing?.category ?? 'Produce',
+            quantity: Number(quantity),
+            price: existing?.price ?? 0,
+            checked: existing?.checked ?? false,
+          };
+        });
+      });
+    }
+
+    // Suggestions can live at the top level (add/update/remove) or under
+    // "result" (search). Both are arrays of plain strings.
+    const rawSuggestions: string[] =
+      Array.isArray(data.suggestions) && data.suggestions.length > 0
+        ? data.suggestions
+        : Array.isArray(data.result?.suggestions)
+          ? data.result.suggestions
+          : [];
+
+    if (rawSuggestions.length > 0) {
+      setSuggestions(
+        rawSuggestions.map((text: string, index: number) => ({
+          title: index === 0 ? 'Suggested swap' : 'Also consider',
+          note: text,
+          accent: index === 0 ? 'substitute' : 'deal',
+        })),
+      );
+    } else if (data.explanation) {
+      setSuggestions([
+        { title: `Added ${data.item ?? 'item'}`, note: data.explanation, accent: 'deal' },
+      ]);
+    }
+
+    const friendlyMessage =
+      data.explanation ??
+      (rawSuggestions.length > 0
+        ? `Couldn't find an exact match for "${data.item ?? trimmed}" — check the suggestions below.`
+        : 'Got it — your cart is updated.');
+
+    setStatusMessage(friendlyMessage);
+    setTranscript(trimmed);
+  } catch (error) {
+    console.error(error);
+    setStatusMessage('The backend is offline. Local cart is still updated in demo mode.');
+  }
+};
 
   const handleVoiceSubmit = () => finalizeCommand(transcript);
 
@@ -226,8 +248,8 @@ export default function Page() {
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition hover:scale-[1.02] dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
             >
-              {resolvedTheme === 'dark' ? <SunMedium size={16} /> : <MoonStar size={16} />}
-              {resolvedTheme === 'dark' ? 'Light' : 'Dark'} mode
+              {mounted && resolvedTheme === 'dark' ? <SunMedium size={16} /> : <MoonStar size={16} />}
+              {mounted && resolvedTheme === 'dark' ? 'Light' : 'Dark'} mode
             </button>
           </div>
         </header>
