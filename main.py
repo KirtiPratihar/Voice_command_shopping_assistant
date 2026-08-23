@@ -70,6 +70,9 @@ class CartState(TypedDict):
     response: dict[str, Any]
 
 
+app.state.session_memory: dict[str, dict[str, Any]] = {}
+
+
 def get_session_state(user_id: str) -> dict[str, Any]:
     store = app.state.session_memory
     if user_id not in store:
