@@ -206,11 +206,6 @@ export default function Page() {
             accent: index === 0 ? 'substitute' : 'deal',
           })),
         );
-      } else if (data.explanation) {
-        setSuggestions([
-          { title: `Added ${data.item ?? 'item'}`, note: data.explanation, accent: 'deal' },
-        ]);
-      }
 
       const friendlyMessage =
         data.explanation ??
@@ -471,7 +466,11 @@ export default function Page() {
                     >
                       {item.accent === 'deal' ? 'Deal' : item.accent === 'substitute' ? 'Substitute' : 'Alert'}
                     </span>
-                    <button type="button" className="text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-200">
+                    <button 
+                      type="button" 
+                      onClick={() => finalizeCommand(`Add ${item.note}`)}
+                      className="text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-200"
+                    >
                       <Plus size={16} />
                     </button>
                   </div>
