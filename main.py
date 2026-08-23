@@ -13,6 +13,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 app = FastAPI()
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "https://voice-command-shopping-assistant-lyart.vercel.app",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app"],  
