@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
 import re
@@ -27,6 +27,13 @@ except ImportError:  # pragma: no cover - optional dependency is installed via r
 APP_TITLE = "Voice Command Shopping Assistant"
 APP_VERSION = "1.0.0"
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app/"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class VoiceCommandRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Transcribed command or spoken query.")
