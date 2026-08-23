@@ -466,6 +466,8 @@ def build_graph():
                 "cart": state["cart"],
                 "last_item": intent.item,
                 "suggestions": [],
+                "result":product,
+
             }
 
             if product.get("matched") is False:
