@@ -140,7 +140,7 @@ export default function Page() {
     setStatusMessage('Sending command to your smart cart...');
 
     try {
-      const response = await fetch('http://localhost:8000/api/voice-command', {
+      const response = await fetch('https://voice-command-shopping-assistant-3zue.onrender.com/api/voice-command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

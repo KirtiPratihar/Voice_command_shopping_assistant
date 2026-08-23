@@ -1,5 +1,6 @@
 from __future__ import annotations
 from fastapi.middleware.cors import CORSMiddleware
+
 import json
 import os
 import re
@@ -10,6 +11,15 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app/"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 try:
     from google import genai
