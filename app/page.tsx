@@ -206,6 +206,7 @@ export default function Page() {
             accent: index === 0 ? 'substitute' : 'deal',
           })),
         );
+      } // <--- THE MISSING BRACE WAS PLACED HERE!
 
       const friendlyMessage =
         data.explanation ??
@@ -220,7 +221,6 @@ export default function Page() {
       setStatusMessage('The backend is offline. Local cart is still updated in demo mode.');
     }
   };
-
   const handleVoiceSubmit = () => finalizeCommand(transcript);
 
   const handleToggleItem = (itemId: string) => {
