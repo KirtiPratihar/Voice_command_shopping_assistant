@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app/"],  
+    allow_origins=["https://voice-command-shopping-assistant-lyart.vercel.app"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
