@@ -42,11 +42,16 @@ except ImportError:  # pragma: no cover - optional dependency is installed via r
     END = None
     START = None
 
-class VoiceCommandRequest(BaseModel):
-    text: str = Field(..., min_length=1, description="Transcribed command or spoken query.")
-    user_id: str = Field(default="default-user", description="Persistent user ID for stateful memory.")
-    preference: Literal['budget', 'premium'] = Field(default='budget', description="User preference: 'budget' or 'premium'.")
+const [userId, setUserId] = useState<string>('');
 
+useEffect(() => {
+  let id = localStorage.getItem('vca-user-id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('vca-user-id', id);
+  }
+  setUserId(id);
+}, []);
 
 class ParsedIntent(BaseModel):
     action: Literal["add", "update", "remove", "search", "checkout"]
@@ -85,19 +90,34 @@ def get_session_state(user_id: str) -> dict[str, Any]:
     return store[user_id]
 
 
+WORD_TO_NUMBER = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "a": 1, "an": 1,
+}
+
 def extract_quantity(text: str) -> tuple[int, str]:
-    quantity_match = re.search(r"\b(\d+)\s*(carton|cartons|bottle|bottles|box|boxes|pack|packs|kg|lb|item|items|unit|units)\b", text.lower())
+    lowered = text.lower()
+
+    quantity_match = re.search(
+        r"\b(\d+)\s*(carton|cartons|bottle|bottles|box|boxes|pack|packs|kg|lb|item|items|unit|units)\b",
+        lowered,
+    )
     if quantity_match:
-        number = int(quantity_match.group(1))
-        unit = quantity_match.group(2)
-        return number, unit
+        return int(quantity_match.group(1)), quantity_match.group(2)
 
     number_match = re.search(r"\b(\d+)\b", text)
     if number_match:
         return int(number_match.group(1)), "item"
 
-    return 1, "item"
+    # NEW: fall back to spelled-out number words
+    word_match = re.search(
+        r"\b(one|two|three|four|five|six|seven|eight|nine|ten)\b", lowered
+    )
+    if word_match:
+        return WORD_TO_NUMBER[word_match.group(1)], "item"
 
+    return 1, "item"
 
 def extract_core_product(text: str) -> str:
     """Attempt to extract the core product name from conversational text.

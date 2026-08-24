@@ -18,7 +18,7 @@ import { useTheme } from 'next-themes';
 import SegmentedToggle from '../components/SegmentedToggle';
 
 // ==========================================
-// 1. TYPES AND CONSTANTS (OUTSIDE COMPONENT)
+// 1. TYPES AND CONSTANTS
 // ==========================================
 
 type CartItem = {
@@ -36,15 +36,6 @@ type Suggestion = {
   accent: 'deal' | 'substitute' | 'alert';
 };
 
-type BackendResponse = {
-  cart?: CartItem[];
-  recommendations?: string[];
-  suggestions?: Suggestion[];
-  message?: string;
-  status?: string;
-  action?: string;
-};
-
 const defaultCart: CartItem[] = [
   { id: 'milk', name: 'Organic Milk', category: 'Dairy', quantity: 2, price: 3.49, checked: false },
   { id: 'avocado', name: 'Avocado', category: 'Produce', quantity: 1, price: 1.99, checked: false },
@@ -60,15 +51,26 @@ const defaultSuggestions: Suggestion[] = [
 const categories = ['All', 'Dairy', 'Produce', 'Bakery'] as const;
 
 // ==========================================
-// 2. MAIN COMPONENT (ALL HOOKS GO INSIDE HERE)
+// 2. MAIN COMPONENT
 // ==========================================
 
 export default function Page() {
   const { resolvedTheme, setTheme } = useTheme();
   
-  // THE FIX: mounted state is safely inside the component now!
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  
+  // BUG 1 FIX: Generate a unique ID for this browser
+  const [userId, setUserId] = useState<string>('default-user');
+
+  useEffect(() => {
+    setMounted(true);
+    let id = localStorage.getItem('vca-user-id');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('vca-user-id', id);
+    }
+    setUserId(id);
+  }, []);
 
   const [transcript, setTranscript] = useState('Say “Add two milk cartons and a loaf of bread”.');
   const [isListening, setIsListening] = useState(false);
@@ -146,6 +148,7 @@ export default function Page() {
     setStatusMessage('Listening for your next shopping command...');
   };
 
+  // FULLY RESTORED FINALIZE COMMAND WITH USER ID
   const finalizeCommand = async (command: string) => {
     const trimmed = command.trim();
     if (!trimmed) return;
@@ -156,7 +159,7 @@ export default function Page() {
       const response = await fetch('https://voice-command-shopping-assistant-3zue.onrender.com/api/voice-command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: trimmed, preference }),
+        body: JSON.stringify({ text: trimmed, preference, user_id: userId }), // User ID sent here!
       });
 
       if (!response.ok) {
@@ -165,7 +168,6 @@ export default function Page() {
 
       const data = await response.json();
 
-      // Cart comes back as a plain { itemName: quantity } object.
       if (data.cart && typeof data.cart === 'object' && !Array.isArray(data.cart)) {
         const cartRecord = data.cart as Record<string, number>;
         setCartItems((previous) => {
@@ -173,7 +175,6 @@ export default function Page() {
           return Object.entries(cartRecord).map(([name, quantity]) => {
             const existing = byName.get(name.toLowerCase());
             
-            // Extract metadata from the backend response if available (crucial for dynamic items)
             const matchedPrice = data.result?.price ?? existing?.price ?? 0;
             const matchedCategory = data.result?.category ?? existing?.category ?? 'Produce';
             
@@ -189,8 +190,6 @@ export default function Page() {
         });
       }
 
-      // Suggestions can live at the top level (add/update/remove) or under
-      // "result" (search). Both are arrays of plain strings.
       const rawSuggestions: string[] =
         Array.isArray(data.suggestions) && data.suggestions.length > 0
           ? data.suggestions
@@ -206,7 +205,7 @@ export default function Page() {
             accent: index === 0 ? 'substitute' : 'deal',
           })),
         );
-      } // <--- THE MISSING BRACE WAS PLACED HERE!
+      }
 
       const friendlyMessage =
         data.explanation ??
@@ -221,6 +220,7 @@ export default function Page() {
       setStatusMessage('The backend is offline. Local cart is still updated in demo mode.');
     }
   };
+
   const handleVoiceSubmit = () => finalizeCommand(transcript);
 
   const handleToggleItem = (itemId: string) => {
