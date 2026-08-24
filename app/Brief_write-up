@@ -1,0 +1,5 @@
+**Approach & Implementation Summary**
+
+The Voice Command Shopping Assistant is a full stack, AI driven e-commerce platform designed to translate natural language into structured cart actions. The frontend, built with Next.js, utilizes the Web Speech API to capture live voice commands and maintains responsive, client side state for budget tracking and dynamic UI updates.
+
+To process commands, the Next.js client routes text to a Python backend, passing persistent UUIDs to ensure isolated, per device session management. At the core of the backend pipeline, an LLM (Gemini) executes advanced NLP intent parsing, extracting specific actions, items, and quantities including translating spoken number words into integers. This structured data is fed into a stateful routing graph (LangGraph) that manages the user's cart history. For inventory resolution, the system simulates a vector database lookup (mocking Pinecone) against a local JSON catalog. To handle edge cases gracefully, out of vocabulary items trigger a dynamic catalog expansion, simulating an external API to assign realistic market pricing and ensuring a seamless, uninterrupted user experience.

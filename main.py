@@ -42,17 +42,6 @@ except ImportError:  # pragma: no cover - optional dependency is installed via r
     END = None
     START = None
 
-const [userId, setUserId] = useState<string>('');
-
-useEffect(() => {
-  let id = localStorage.getItem('vca-user-id');
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem('vca-user-id', id);
-  }
-  setUserId(id);
-}, []);
-
 class ParsedIntent(BaseModel):
     action: Literal["add", "update", "remove", "search", "checkout"]
     item: str
@@ -208,20 +197,20 @@ def parse_with_llm(text: str, last_item: str | None = None, preference: str = "b
 
     Good examples (input -> expected JSON):
     Input: "Add one bread to my cart"
-    Output: {"action":"add","item":"bread","quantity":1,"unit":"item","confidence":0.95,"notes":"Stripped filler and quantity"}
+    Output: {{"action":"add","item":"bread","quantity":1,"unit":"item","confidence":0.95,"notes":"Stripped filler and quantity"}}
 
     Input: "Please buy two cartons of almond milk"
-    Output: {"action":"add","item":"almond milk","quantity":2,"unit":"carton","confidence":0.95,"notes":"Removed politeness and extracted quantity/unit"}
+    Output: {{"action":"add","item":"almond milk","quantity":2,"unit":"carton","confidence":0.95,"notes":"Removed politeness and extracted quantity/unit"}}
 
     Input: "Remove eggs"
-    Output: {"action":"remove","item":"eggs","quantity":1,"unit":"item","confidence":0.9,"notes":"Remove action detected"}
+    Output: {{"action":"remove","item":"eggs","quantity":1,"unit":"item","confidence":0.9,"notes":"Remove action detected"}}
 
     Bad examples (what NOT to return):
     Input: "Add one bread to my cart"
-    Output (BAD): {"action":"add","item":"add one bread to my cart","quantity":1,"unit":"item","confidence":0.5}
+    Output (BAD): {{"action":"add","item":"add one bread to my cart","quantity":1,"unit":"item","confidence":0.5}}
 
     Input: "Add two milk cartons"
-    Output (BAD): {"action":"add","item":"two milk cartons","quantity":1,"unit":"item","confidence":0.5}
+    Output (BAD): {{"action":"add","item":"two milk cartons","quantity":1,"unit":"item","confidence":0.5}}
 
     Always prefer the Good Output form. Return only a single JSON object and nothing else.
     """

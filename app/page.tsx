@@ -34,6 +34,7 @@ type Suggestion = {
   title: string;
   note: string;
   accent: 'deal' | 'substitute' | 'alert';
+  item: string;
 };
 
 const defaultCart: CartItem[] = [
@@ -43,9 +44,9 @@ const defaultCart: CartItem[] = [
 ];
 
 const defaultSuggestions: Suggestion[] = [
-  { title: 'Seasonal pick', note: 'Citrus is 18% off this week.', accent: 'deal' },
-  { title: 'Smart substitute', note: 'Almond milk is a strong match for dairy shoppers.', accent: 'substitute' },
-  { title: 'Low stock alert', note: 'Eggs are trending fast in your usual basket.', accent: 'alert' },
+  { title: 'Seasonal pick', note: 'Citrus is 18% off this week.', accent: 'deal', item: 'citrus' },
+  { title: 'Smart substitute', note: 'Almond milk is a strong match for dairy shoppers.', accent: 'substitute',item: 'almond milk' },
+  { title: 'Low stock alert', note: 'Eggs are trending fast in your usual basket.', accent: 'alert', item: 'eggs'},
 ];
 
 const categories = ['All', 'Dairy', 'Produce', 'Bakery'] as const;
@@ -203,6 +204,7 @@ export default function Page() {
             title: index === 0 ? 'Suggested swap' : 'Also consider',
             note: text,
             accent: index === 0 ? 'substitute' : 'deal',
+            item: data.item ?? text, // <-- ADD THIS LINE
           })),
         );
       }
@@ -468,7 +470,7 @@ export default function Page() {
                     </span>
                     <button 
                       type="button" 
-                      onClick={() => finalizeCommand(`Add ${item.note}`)}
+                      onClick={() => finalizeCommand(`Add ${item.item}`)}
                       className="text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-200"
                     >
                       <Plus size={16} />
