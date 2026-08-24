@@ -50,6 +50,10 @@ class ParsedIntent(BaseModel):
     confidence: float = 0.8
     notes: str | None = None
 
+class VoiceCommandRequest(BaseModel):
+    text: str = Field(..., min_length=1, description="The raw transcribed voice command.")
+    user_id: str = Field(default="default-user", description="Per-device/session identifier.")
+    preference: Literal["budget", "premium"] = Field(default="budget", description="Shopping preference mode.")
 
 class CartState(TypedDict):
     user_id: str

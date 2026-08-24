@@ -1,46 +1,5 @@
 # 🎙️ Voice Command Shopping Assistant
 
-A full stack, voice activated shopping list manager featuring intelligent intent extraction, smart product suggestions, and a modern Liquid Glass UI. 
-
-This project was built to deliver a seamless, hands-free shopping experience by combining browser-based speech recognition with an advanced NLP pipeline (Large Language Model + robust local fallback) to accurately parse user commands, manage inventory, and tailor recommendations based on user preferences.
-
-## 🚀 Live Demo & Repository
-- **Live Application:** [https://voice-command-shopping-assistant-lyart.vercel.app/]
-- **Repository:** [https://github.com/KirtiPratihar/Voice_command_shopping_assistant.git](https://github.com/KirtiPratihar/Voice_command_shopping_assistant.git)
-
----
-
-## 🏗️ System Architecture & Workflow
-
-The application uses a decoupled architecture: a Next.js frontend handling the Liquid Glass UI and voice capture, and a FastAPI Python backend managing the NLP parsing, inventory lookup, and smart suggestions.
-
-```mermaid
-graph TD
-    A[User Voice Command] -->|Web Speech API| B(Next.js Frontend)
-    B -->|POST /voice-command| C{FastAPI Backend}
-    
-    C --> D[LLM Intent Extraction]
-    D -- Fails/Offline --> E[Local Fallback Parser]
-    D -- Success --> F[Intent Parsed]
-    E --> F
-    
-    F --> G{Action Router}
-    G -->|Add/Remove| H[Inventory Matcher]
-    
-    H --> I[(Mock Inventory JSON)]
-    I --> J{Preference Engine}
-    J -->|Budget| K[Filter Rating > 4.0 & Low Price]
-    J -->|Premium| L[Filter Premium Tag & Rating > 4.5]
-    
-    K --> M[Final Selection & Explanation]
-    L --> M
-    
-    M --> N[JSON Response]
-    N --> O(Next.js Frontend UI)
-    O --> P[Visual Feedback & List Update]
-```
-# 🎙️ Voice Command Shopping Assistant
-
 A full-stack, voice-activated shopping list manager featuring intelligent intent extraction, smart product suggestions, and a modern Liquid Glass UI. 
 
 This project was built to deliver a seamless, hands-free shopping experience by combining browser-based speech recognition with an advanced NLP pipeline (Large Language Model + robust local fallback) to accurately parse user commands, manage inventory, and tailor recommendations based on user preferences.
